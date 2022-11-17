@@ -16,7 +16,7 @@ class Request
     public function __construct($request, $server, $cookie)
     {
         $this->Parameters   = $request;
-        $this->RawData      = file_get_contents('php://input', null, null, null, 1024*1024);
+        $this->RawData      = file_get_contents('php://input', false, null, null, 1024*1024);
         $this->Server       = $server;
         $this->Cookie       = $cookie;
         $this->Ip           = $this->Server['REMOTE_ADDR'] ?? null;

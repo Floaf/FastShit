@@ -111,7 +111,7 @@ class Router
                         }
 
                         $class = new $controllerClass($this->Request, $urlPathArray[$level]);
-                        $relativePath = mb_substr($uriParts->Path, mb_strlen($currentPath) + 1);
+                        $relativePath = mb_substr($uriParts->Path, mb_strlen($urlPathArray[$level]));
                         $class->$methodAction($relativePath);
                         return;
                     }

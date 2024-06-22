@@ -33,7 +33,7 @@ class Router
         $this->HttpStatusClasses[$httpStatus] = $class;
     }
 
-    public function HandleRequest($uri)
+    public function HandleRequest(string $uri)
     {
         $testedClasses = [];
 
@@ -142,7 +142,7 @@ class Router
         }
     }
 
-    protected static function SplitOnQueryString($url)
+    protected static function SplitOnQueryString(string $url)
     {
         $result = new stdClass();
         $result->Path = null;

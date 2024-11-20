@@ -7,12 +7,12 @@ use Exception;
 
 abstract class HttpStatus extends Exception
 {
-    protected $Request = null;
+    protected Request $Request;
 
     public function __construct(Request $request)
     {
         $this->Request = $request;
     }
 
-    public abstract function OutputResponse($debugInfo);
+    public abstract function OutputResponse(?string $debugInfo): void;
 }

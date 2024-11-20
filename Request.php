@@ -4,61 +4,72 @@ namespace FastShit;
 
 class Request
 {
-    public $Parameters;
-    public $RawData;
-    public $Server;
-    public $Cookie;
-    public $Ip;
-    public $UserAgent;
-    public $ContentType;
-    protected $ValidOrigin;
+    /** @var array<string,string>|array<string,string[]> */
+    public array $Parameters;
+    public ?string $RawData;
 
-    public function __construct($request, $server, $cookie)
+    /** @var string[] */
+    public array $Server;
+
+    /** @var string[] */
+    public array $Cookie;
+    public ?string $Ip;
+    public ?string $UserAgent;
+    public ?string $ContentType;
+    protected bool $ValidOrigin;
+
+    /**
+     * @param array<string,string>|array<string,string[]> $request
+     * @param string[] $server
+     * @param array<string,string>|array<string,string[]> $cookie
+     */
+    public function __construct(array $request, array $server, array $cookie)
     {
-        $this->Parameters   = $request;
-        $this->RawData      = file_get_contents('php://input', false, null, 0, 1024*1024);
-        $this->Server       = $server;
-        $this->Cookie       = $cookie;
-        $this->Ip           = $this->Server['REMOTE_ADDR'] ?? null;
-        $this->UserAgent    = $this->Server['HTTP_USER_AGENT'] ?? null;
-        $this->ContentType  = $this->Server["CONTENT_TYPE"] ?? null;
-        $this->ValidOrigin  = $this->IsOriginOrRefererSameAsHost();
+        $rawData = file_get_contents('php://input', false, null, 0, 1024 * 1024);
+
+        $this->Parameters = $request;
+        $this->RawData = ($rawData !== false ? $rawData : null);
+        $this->Server = $server;
+        $this->Cookie = $this->FilterCookie($cookie);
+        $this->Ip = $this->Server['REMOTE_ADDR'] ?? null;
+        $this->UserAgent = $this->Server['HTTP_USER_AGENT'] ?? null;
+        $this->ContentType = $this->Server["CONTENT_TYPE"] ?? null;
+        $this->ValidOrigin = $this->IsOriginOrRefererSameAsHost();
     }
 
-    public function GetUri() : ?string
+    public function GetUri(): ?string
     {
         return $this->Server['REQUEST_URI'] ?? null;
     }
 
-    public function HasParameter($parameterName) : bool
+    public function HasParameter(string $parameterName): bool
     {
         return array_key_exists($parameterName, $this->Parameters);
     }
 
-    public function GetParameterAsString($parameterName) : string
+    public function GetParameterAsString(string $parameterName): string
     {
         if (isset($this->Parameters[$parameterName])) {
-            if (is_string($this->Parameters[$parameterName])) {
-                if (mb_detect_encoding($this->Parameters[$parameterName], 'UTF-8', true) !== false) {
-                    return $this->Parameters[$parameterName];
-                }
+            $parameter = $this->Parameters[$parameterName];
+            if (is_string($parameter) && mb_detect_encoding($parameter, 'UTF-8', true) !== false) {
+                return $parameter;
             }
         }
 
         return "";
     }
 
-    public function IsValidOrigin() : bool
+    public function IsValidOrigin(): bool
     {
         return $this->ValidOrigin;
     }
 
-    public function IsContentType(string $contentType) : bool
+    public function IsContentType(string $contentType): bool
     {
         return ($this->ContentType === $contentType);
     }
 
-    protected function IsOriginOrRefererSameAsHost() : bool
+    protected function IsOriginOrRefererSameAsHost(): bool
     {
         $origin = null;
         if (isset($this->Server['HTTP_ORIGIN'])) {
@@ -71,5 +82,21 @@ class Request
         $host = parse_url('https://' . $this->Server['HTTP_HOST'], PHP_URL_HOST);
 
         return $origin == $host;
+    }
+
+    /**
+     * @param array<string,string>|array<string,string[]> $cookie
+     * @return string[]
+     */
+    private function FilterCookie(array $cookie): array
+    {
+        $filteredArray = [];
+        foreach ($cookie as $key => $value) {
+            if (is_string($value)) {
+                $filteredArray[$key] = $value;
+            }
+        }
+
+        return $filteredArray;
     }
 }

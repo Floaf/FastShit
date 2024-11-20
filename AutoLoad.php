@@ -2,9 +2,9 @@
 
 class AutoLoad
 {
-    public static function RegisterNamespace($namespace, $dirName)
+    public static function RegisterNamespace(string $namespace, string $dirName): void
     {
-        spl_autoload_register(function ($className) use ($namespace, $dirName) {
+        spl_autoload_register(function (string $className) use ($namespace, $dirName): void {
             $classNameStart = $namespace . "\\";
             if (mb_strpos($className, $classNameStart) === 0) {
                 $className = mb_substr($className, mb_strlen($classNameStart));

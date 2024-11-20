@@ -10,11 +10,13 @@ use stdClass;
 
 class Router
 {
-    protected $ControllerNamespace;
-    protected $ControllerName;
-    protected $Request;
-    protected $DevEnvironment = false;
-    protected $HttpStatusClasses = [
+    protected string $ControllerNamespace;
+    protected string $ControllerName;
+    protected Request $Request;
+    protected bool $DevEnvironment = false;
+
+    /** @var array<int, class-string<HttpStatus>> */
+    protected array $HttpStatusClasses = [
         404 => HttpStatus404::class,
         500 => HttpStatus500::class
     ];
@@ -28,12 +30,13 @@ class Router
         $this->DevEnvironment = $devEnvironment;
     }
 
-    public function SetHttpStatusClass(int $httpStatus, string $class)
+    /** @param class-string<HttpStatus> $class */
+    public function SetHttpStatusClass(int $httpStatus, string $class): void
     {
         $this->HttpStatusClasses[$httpStatus] = $class;
     }
 
-    public function HandleRequest(string $uri)
+    public function HandleRequest(string $uri): void
     {
         $testedClasses = [];
 
@@ -124,7 +127,7 @@ class Router
         } catch (HttpStatus $ex) {
             $debugInfo = null;
 
-            if ($this->DevEnvironment === true) {
+            if ($this->DevEnvironment) {
                 $debugInfo = "\n\nTested classes:\n";
                 $debugInfo .= implode("\n", $testedClasses);
             }
@@ -133,7 +136,7 @@ class Router
         } catch (Exception $ex) {
             $debugInfo = null;
 
-            if ($this->DevEnvironment === true) {
+            if ($this->DevEnvironment) {
                 $debugInfo = "\n\n" . $ex->getMessage();
             }
 
@@ -142,7 +145,7 @@ class Router
         }
     }
 
-    protected static function SplitOnQueryString(string $url)
+    protected static function SplitOnQueryString(string $url): stdClass
     {
         $result = new stdClass();
         $result->Path = null;
@@ -157,7 +160,7 @@ class Router
         return $result;
     }
 
-    protected function ConvertToStudlyCaps($string)
+    protected function ConvertToStudlyCaps(string $string): string
     {
         return str_replace(' ', '', ucwords(str_replace([
             '-',

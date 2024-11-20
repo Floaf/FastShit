@@ -4,7 +4,8 @@ namespace FastShit\HttpStatuses;
 
 class HttpStatus404 extends HttpStatus
 {
-    public function OutputResponse($debugInfo)
+    #[\Override]
+    public function OutputResponse(?string $debugInfo): void
     {
         http_response_code(404);
         print "Page not found";

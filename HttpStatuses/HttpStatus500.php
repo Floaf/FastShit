@@ -4,7 +4,8 @@ namespace FastShit\HttpStatuses;
 
 class HttpStatus500 extends HttpStatus
 {
-    public function OutputResponse($debugInfo)
+    #[\Override]
+    public function OutputResponse(?string $debugInfo): void
     {
         http_response_code(500);
         print "Something went wrong";

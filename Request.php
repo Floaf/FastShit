@@ -79,9 +79,9 @@ class Request
         }
 
 
-        $host = parse_url('https://' . $this->Server['HTTP_HOST'], PHP_URL_HOST);
+        $host = parse_url('https://' . ($this->Server['HTTP_HOST'] ?? ''), PHP_URL_HOST);
 
-        return $origin == $host;
+        return $origin !== null && $origin === $host;
     }
 
     /**

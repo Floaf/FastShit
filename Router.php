@@ -103,12 +103,15 @@ class Router
 
                 if (class_exists($controllerClass)) {
                     if (method_exists($controllerClass, $methodAction)) {
+                        // Normalize the path so it starts with exactly one slash,
+                        // preventing open redirects via protocol-relative URLs (e.g. //evil.com).
+                        $safePath = '/' . ltrim($uriParts->Path, '/');
                         if (!$endsWithSlash) {
-                            $redirect = $uriParts->Path . '/' . ($uriParts->QueryString !== null ? '?' . $uriParts->QueryString : '');
+                            $redirect = $safePath . '/' . ($uriParts->QueryString !== null ? '?' . $uriParts->QueryString : '');
                             header('Location: ' . $redirect, true, ($this->DevEnvironment ? 302 : 301));
                             return;
                         } else if ($uriParts->Path !== (rtrim($uriParts->Path, '/') . '/')) {
-                            $redirect = rtrim($uriParts->Path, '/') . '/' . ($uriParts->QueryString !== null ? '?' . $uriParts->QueryString : '');
+                            $redirect = rtrim($safePath, '/') . '/' . ($uriParts->QueryString !== null ? '?' . $uriParts->QueryString : '');
                             header('Location: ' . $redirect, true, ($this->DevEnvironment ? 302 : 301));
                             return;
                         }
@@ -151,9 +154,9 @@ class Router
         $result->Path = null;
         $result->QueryString = null;
 
-        $segments = explode('?', $url);
+        $segments = explode('?', $url, 2);
         $result->Path = $segments[0];
-        if (count($segments) == 2) {
+        if (count($segments) === 2) {
             $result->QueryString = $segments[1];
         }
 

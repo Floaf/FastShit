@@ -186,8 +186,8 @@ class Router
 
 readonly class SplitOnQueryStringResult
 {
-    public string $path,
-    public ?string $queryString
+    public string $path;
+    public ?string $queryString;
 
     public function __construct(string $path, ?string $queryString) {
         $this->path = $path;

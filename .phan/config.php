@@ -6,28 +6,17 @@ return [
 
     // Vilka kataloger som ska analyseras
     'directory_list' => [
-        'Application',
-        'Lib',
-        'Shared'
+        'src'
     ],
 
     // Exkludera mappar och filer
     'exclude_analysis_directory_list' => [
-        'Lib/Base64Url',
-        'Lib/Jose',
-        'Lib/League',
-        'Lib/Minishlink',
-        'Lib/PHPMailer'
     ],
 
     'file_suppressions' => [
-        'Lib/FloafLib/Database/Database.php' => [
-            'PhanPluginUnknownArrayMethodParamType'
-        ]
     ],
 
     'exclude_file_list' => [
-        //'Application/FloafNet/Lib/UploadsLib.php',
     ],
 
     'suppress_issue_types' => [
@@ -38,7 +27,7 @@ return [
     ],
 
     // Ange vilka versioner av PHP som din kod ska vara kompatibel med
-    'target_php_version' => '8.3',
+    'target_php_version' => '8.4',
 
     'minimum_severity' => 8, // 0
 

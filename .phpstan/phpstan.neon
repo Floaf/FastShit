@@ -11,7 +11,6 @@ parameters:
     level: 10
     fileExtensions:
         - php
-        - phtml
 
     strictRules:
         disallowedLooseComparison: false
@@ -35,29 +34,15 @@ parameters:
 
     # https://phpstan.org/user-guide/ignoring-errors
     ignoreErrors:
-    #    - identifier: constant.notFound
-        -
-            paths:
-                - ../Lib/FastShit/Router.php
-            identifier: method.notFound
 
     excludePaths:
         analyse:
-            - ../Lib/League/Plates
-            - ../Lib/PHPMailer
-            - ../Lib/Minishlink
             - /usr/local/bin/phpstan/stubs/*
 
     # https://phpstan.org/config-reference#stricter-analysis
     # https://phpstan.org/config-reference#analysed-files
     paths:
-        - ../Application
-        - ../Shared
-        - ../Lib/FastShit
-        - ../Lib/FloafLib
-        - ../Lib/League/Plates
-        - ../Lib/PHPMailer
-        - ../Lib/Minishlink
+        - ../src
 
     checkUninitializedProperties: true
     checkBenevolentUnionTypes: true
@@ -79,4 +64,3 @@ parameters:
     reportPossiblyNonexistentConstantArrayOffset: true
     reportPossiblyNonexistentGeneralArrayOffset: true
     checkImplicitMixed: true
-    

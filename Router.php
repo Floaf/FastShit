@@ -6,7 +6,6 @@ use FastShit\HttpStatuses\HttpStatus;
 use FastShit\HttpStatuses\HttpStatus404;
 use FastShit\HttpStatuses\HttpStatus500;
 use Exception;
-use stdClass;
 
 class Router
 {
@@ -41,13 +40,13 @@ class Router
         $testedClasses = [];
 
         try {
-            $uriParts = static::SplitOnQueryString($uri);
+            $uriParts = self::SplitOnQueryString($uri);
 
             // Does the request end with a slash?
-            $endsWithSlash = (mb_substr($uriParts->Path, -1) === '/');
+            $endsWithSlash = (mb_substr($uriParts->path, -1) === '/');
 
             // Split the request into segments
-            $requestSegments = explode('/', trim($uriParts->Path, '/'));
+            $requestSegments = explode('/', trim($uriParts->path, '/'));
 
             // Path for controller
             $controllerPathArray = [
@@ -62,7 +61,7 @@ class Router
             $pathSegment = '/';
             foreach ($requestSegments as $requestSegment) {
                 if ($requestSegment != null) {
-                    $folderSegment .= $this->ConvertToStudlyCaps($requestSegment) . '/';
+                    $folderSegment .= self::ConvertToStudlyCaps($requestSegment) . '/';
                     $controllerPathArray[] = $folderSegment;
 
                     $pathSegment .= $requestSegment . '/';
@@ -73,19 +72,19 @@ class Router
             $urlPathArray = array_reverse($urlPathArray);
 
             // When the path do not end with a slash, check if the last path segment corresponds with a method name in the controller class
-            if (!$endsWithSlash && count($controllerPathArray) >= 2) {
+            if (!$endsWithSlash && isset($controllerPathArray[1])) {
                 $controller = str_replace('/', '\\', $controllerPathArray[1]);
                 $controllerClass = $this->ControllerNamespace . $controller . $this->ControllerName;
 
-                $methodName = $this->ConvertToStudlyCaps(end($requestSegments));
+                $methodName = self::ConvertToStudlyCaps(end($requestSegments));
                 $methodAction = $methodName . 'CustomAction';
 
-                $baseUrl = $urlPathArray[1] . end($requestSegments);
+                $baseUrl = ($urlPathArray[1] ?? '') . end($requestSegments);
 
                 if (class_exists($controllerClass)) {
                     if (method_exists($controllerClass, $methodAction)) {
                         $class = new $controllerClass($this->Request, $baseUrl);
-                        $class->$methodAction();
+                        $class->$methodAction(); // @phpstan-ignore method.dynamicName
                         return;
                     }
                 }
@@ -104,18 +103,19 @@ class Router
                 if (class_exists($controllerClass)) {
                     if (method_exists($controllerClass, $methodAction)) {
                         if (!$endsWithSlash) {
-                            $redirect = $uriParts->Path . '/' . ($uriParts->QueryString !== null ? '?' . $uriParts->QueryString : '');
+                            $redirect = $uriParts->path . '/' . ($uriParts->queryString !== null ? '?' . $uriParts->queryString : '');
                             header('Location: ' . $redirect, true, ($this->DevEnvironment ? 302 : 301));
                             return;
-                        } else if ($uriParts->Path !== (rtrim($uriParts->Path, '/') . '/')) {
-                            $redirect = rtrim($uriParts->Path, '/') . '/' . ($uriParts->QueryString !== null ? '?' . $uriParts->QueryString : '');
+                        } else if ($uriParts->path !== (rtrim($uriParts->path, '/') . '/')) {
+                            $redirect = rtrim($uriParts->path, '/') . '/' . ($uriParts->queryString !== null ? '?' . $uriParts->queryString : '');
                             header('Location: ' . $redirect, true, ($this->DevEnvironment ? 302 : 301));
                             return;
                         }
 
+                        $path = $urlPathArray[$level] ?? throw new Exception('Path not found');
                         $class = new $controllerClass($this->Request, $urlPathArray[$level]);
-                        $relativePath = mb_substr($uriParts->Path, mb_strlen($urlPathArray[$level]));
-                        $class->$methodAction($relativePath);
+                        $relativePath = mb_substr($uriParts->path, mb_strlen($urlPathArray[$level]));
+                        $class->$methodAction($relativePath); // @phpstan-ignore method.dynamicName
                         return;
                     }
                 }
@@ -123,7 +123,7 @@ class Router
                 $testedClasses[] = $controllerClass . '->' . $methodAction;
             }
 
-            throw new $this->HttpStatusClasses[404]($this->Request);
+            throw new ($this->GetStatusClassName(404))($this->Request);
         } catch (HttpStatus $ex) {
             $debugInfo = null;
 
@@ -140,31 +140,50 @@ class Router
                 $debugInfo = "\n\n" . $ex->getMessage();
             }
 
-            $status = new $this->HttpStatusClasses[500]($this->Request);
+            $status = new ($this->GetStatusClassName(500))($this->Request);
             $status->OutputResponse($debugInfo);
         }
     }
 
-    protected static function SplitOnQueryString(string $url): stdClass
+    /** @return class-string<HttpStatus> */
+    private function GetStatusClassName(int $statusCode): string
     {
-        $result = new stdClass();
-        $result->Path = null;
-        $result->QueryString = null;
-
-        $segments = explode('?', $url);
-        $result->Path = $segments[0];
-        if (count($segments) == 2) {
-            $result->QueryString = $segments[1];
-        }
-
-        return $result;
+        return $this->HttpStatusClasses[$statusCode] ?? throw new Exception('No status class defined for status code ' . $statusCode);
     }
 
-    protected function ConvertToStudlyCaps(string $string): string
+    private static function SplitOnQueryString(string $url): SplitOnQueryStringResult
+    {
+        $queryString = null;
+
+        $segments = explode('?', $url);
+        $path = $segments[0];
+        if (count($segments) == 2) {
+            $queryString = $segments[1];
+        }
+
+        return new SplitOnQueryStringResult(
+            $path,
+            $queryString
+        );
+    }
+
+    private static function ConvertToStudlyCaps(string $string): string
     {
         return str_replace(' ', '', ucwords(str_replace([
             '-',
             '_'
         ], ' ', $string)));
+    }
+}
+
+readonly class SplitOnQueryStringResult
+{
+    public string $path;
+    public ?string $queryString;
+
+    public function __construct(string $path, ?string $queryString)
+    {
+        $this->path = $path;
+        $this->queryString = $queryString;
     }
 }

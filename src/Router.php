@@ -83,7 +83,7 @@ class Router
 
                 if (class_exists($controllerClass)) {
                     if (method_exists($controllerClass, $methodAction)) {
-                        $class = new $controllerClass($this->Request, $baseUrl);
+                        $class = new $controllerClass($this->request, $baseUrl);
                         $class->$methodAction(); // @phpstan-ignore method.dynamicName
                         return;
                     }
@@ -117,11 +117,10 @@ class Router
                         }
 
                         $path = $urlPathArray[$level] ?? throw new Exception('Path not found');
-                        $class = new $controllerClass($this->Request, $urlPathArray[$level]);
+                        $class = new $controllerClass($this->request, $urlPathArray[$level]);
                         $relativePath = mb_substr($uriParts->path, mb_strlen($urlPathArray[$level]));
                         /**
-                         * @phpstan-ignore method.dynamicName
-                         * @phpstan-ignore method.notFound
+                         * @phpstan-ignore method.dynamicName, method.notFound
                          */
                         $class->$methodAction($relativePath);
                         return;
@@ -131,7 +130,7 @@ class Router
                 $testedClasses[] = $controllerClass . '->' . $methodAction;
             }
 
-            throw new ($this->GetStatusClassName(404))($this->Request);
+            throw new ($this->GetStatusClassName(404))($this->request);
         } catch (HttpStatus $ex) {
             $debugInfo = null;
 
@@ -148,7 +147,7 @@ class Router
                 $debugInfo = "\n\n" . $ex->getMessage();
             }
 
-            $status = new ($this->GetStatusClassName(500))($this->Request);
+            $status = new ($this->GetStatusClassName(500))($this->request);
             $status->OutputResponse($debugInfo);
         }
     }

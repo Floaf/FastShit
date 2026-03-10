@@ -1,0 +1,66 @@
+includes:
+    - ../vendor/phpstan/phpstan/conf/bleedingEdge.neon # https://phpstan.org/blog/what-is-bleeding-edge
+    - ../vendor/phpstan/phpstan-strict-rules/rules.neon # https://github.com/phpstan/phpstan-strict-rules
+
+parameters:
+    # https://phpstan.org/user-guide/output-format
+    errorFormat: table
+    editorUrl: 'vscode://file/%%file%%:%%line%%'
+    editorUrlTitle: '%%relFile%%:%%line%%'
+
+    level: 10
+    fileExtensions:
+        - php
+
+    strictRules:
+        disallowedLooseComparison: false
+        booleansInConditions: false
+        uselessCast: true
+        requireParentConstructorCall: false
+        disallowedBacktick: false
+        disallowedEmpty: true
+        disallowedImplicitArrayCreation: true
+        disallowedShortTernary: true
+        overwriteVariablesWithLoop: false
+        closureUsesThis: false
+        matchingInheritedMethodNames: true
+        numericOperandsInArithmeticOperators: false
+        strictFunctionCalls: true
+        dynamicCallOnStaticMethod: true
+        switchConditionsMatchingType: false
+        noVariableVariables: true
+        strictArrayFilter: false
+        illegalConstructorMethodCall: false
+
+    # https://phpstan.org/user-guide/ignoring-errors
+    ignoreErrors:
+
+    excludePaths:
+        analyse:
+            - /usr/local/bin/phpstan/stubs/*
+
+    # https://phpstan.org/config-reference#stricter-analysis
+    # https://phpstan.org/config-reference#analysed-files
+    paths:
+        - ../src
+
+    checkUninitializedProperties: true
+    checkBenevolentUnionTypes: true
+    checkDynamicProperties: true
+    checkFunctionNameCase: true
+    checkTooWideReturnTypesInProtectedAndPublicMethods: true
+    reportAnyTypeWideningInVarTag: true
+    checkMissingOverrideMethodAttribute: true
+    checkInternalClassCaseSensitivity: true
+    reportStaticMethodSignatures: true
+    reportAlwaysTrueInLastCondition: true
+    reportWrongPhpDocTypeInVarTag: true
+    polluteScopeWithLoopInitialAssignments: true
+    polluteScopeWithAlwaysIterableForeach: true
+    checkExplicitMixedMissingReturn: true
+    reportMaybesInMethodSignatures: true
+    reportMaybesInPropertyPhpDocTypes: true
+    rememberPossiblyImpureFunctionValues: true
+    reportPossiblyNonexistentConstantArrayOffset: true
+    reportPossiblyNonexistentGeneralArrayOffset: true
+    checkImplicitMixed: true

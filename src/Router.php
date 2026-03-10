@@ -120,7 +120,7 @@ class Router
                         $class = new $controllerClass($this->request, $urlPathArray[$level]);
                         $relativePath = mb_substr($uriParts->path, mb_strlen($urlPathArray[$level]));
                         /**
-                         * @phpstan-ignore method.dynamicName, method.notFound
+                         * @phpstan-ignore method.dynamicName, method.notFound, method.notFound
                          */
                         $class->$methodAction($relativePath);
                         return;

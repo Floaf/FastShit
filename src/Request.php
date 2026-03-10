@@ -82,7 +82,7 @@ class Request
 
         $host = parse_url('https://' . ($this->Server['HTTP_HOST'] ?? ''), PHP_URL_HOST);
 
-        return is_string($origin) && is_string($host) && $origin !== '' && $origin === $host;
+        return is_string($origin) && is_string($host) && $origin !== '' && $host !== '' && $origin === $host;
     }
 
     /**

@@ -118,8 +118,9 @@ class Router
                             return;
                         }
 
-                        $class = new $controllerClass($this->request, $urlPathArray[$level] ?? throw new Exception('Path not found'));
-                        $relativePath = mb_substr($uriParts->path, mb_strlen($urlPathArray[$level]));
+                        $path = $urlPathArray[$level] ?? throw new Exception('Path not found');
+                        $class = new $controllerClass($this->request, $path);
+                        $relativePath = mb_substr($uriParts->path, mb_strlen($path));
                         /**
                          * @phpstan-ignore method.dynamicName, method.notFound, method.notFound
                          */

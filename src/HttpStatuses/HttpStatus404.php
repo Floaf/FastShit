@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace FastShit\HttpStatuses;
 
 class HttpStatus404 extends HttpStatus

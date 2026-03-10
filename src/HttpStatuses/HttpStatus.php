@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace FastShit\HttpStatuses;
 
 use FastShit\Request;
@@ -11,6 +13,8 @@ abstract class HttpStatus extends Exception
 
     public function __construct(Request $request)
     {
+        parent::__construct();
+
         $this->Request = $request;
     }
 

@@ -9,10 +9,10 @@ use Exception;
 
 class Router
 {
-    protected string $ControllerNamespace;
-    protected string $ControllerName;
-    protected Request $Request;
-    protected bool $DevEnvironment = false;
+    protected string $controllerNamespace;
+    protected string $controllerName;
+    protected Request $request;
+    protected bool $devEnvironment = false;
 
     /** @var array<int, class-string<HttpStatus>> */
     protected array $HttpStatusClasses = [
@@ -22,11 +22,11 @@ class Router
 
     public function __construct(string $controllerNamespace, string $controllerName, Request $request, bool $devEnvironment = false)
     {
-        $this->ControllerNamespace = $controllerNamespace;
-        $this->ControllerName = $controllerName;
-        $this->Request = $request;
+        $this->controllerNamespace = $controllerNamespace;
+        $this->controllerName = $controllerName;
+        $this->request = $request;
 
-        $this->DevEnvironment = $devEnvironment;
+        $this->devEnvironment = $devEnvironment;
     }
 
     /** @param class-string<HttpStatus> $class */
@@ -74,7 +74,7 @@ class Router
             // When the path do not end with a slash, check if the last path segment corresponds with a method name in the controller class
             if (!$endsWithSlash && isset($controllerPathArray[1])) {
                 $controller = str_replace('/', '\\', $controllerPathArray[1]);
-                $controllerClass = $this->ControllerNamespace . $controller . $this->ControllerName;
+                $controllerClass = $this->controllerNamespace . $controller . $this->controllerName;
 
                 $methodName = self::ConvertToStudlyCaps(end($requestSegments));
                 $methodAction = $methodName . 'CustomAction';
@@ -95,27 +95,35 @@ class Router
             // Check all allowed combinations of the path, beginning with the most accurate
             foreach ($controllerPathArray as $level => $currentPath) {
                 $controller = str_replace('/', '\\', $currentPath);
-                $controllerClass = $this->ControllerNamespace . $controller . $this->ControllerName;
+                $controllerClass = $this->controllerNamespace . $controller . $this->controllerName;
 
                 // Level 0 means that the path points to a specific method
                 $methodAction = ($level == 0 ? 'IndexAction' : 'RelativeAction');
 
                 if (class_exists($controllerClass)) {
                     if (method_exists($controllerClass, $methodAction)) {
+                        // Normalize the path so it starts with exactly one slash,
+                        // preventing open redirects via protocol-relative URLs (e.g. //evil.com).
+                        $safePath = '/' . ltrim($uriParts->path, '/');
+
                         if (!$endsWithSlash) {
-                            $redirect = $uriParts->path . '/' . ($uriParts->queryString !== null ? '?' . $uriParts->queryString : '');
-                            header('Location: ' . $redirect, true, ($this->DevEnvironment ? 302 : 301));
+                            $redirect = $safePath . '/' . ($uriParts->queryString !== null ? '?' . $uriParts->queryString : '');
+                            header('Location: ' . $redirect, true, ($this->devEnvironment ? 302 : 301));
                             return;
                         } else if ($uriParts->path !== (rtrim($uriParts->path, '/') . '/')) {
-                            $redirect = rtrim($uriParts->path, '/') . '/' . ($uriParts->queryString !== null ? '?' . $uriParts->queryString : '');
-                            header('Location: ' . $redirect, true, ($this->DevEnvironment ? 302 : 301));
+                            $redirect = rtrim($safePath, '/') . '/' . ($uriParts->queryString !== null ? '?' . $uriParts->queryString : '');
+                            header('Location: ' . $redirect, true, ($this->devEnvironment ? 302 : 301));
                             return;
                         }
 
                         $path = $urlPathArray[$level] ?? throw new Exception('Path not found');
                         $class = new $controllerClass($this->Request, $urlPathArray[$level]);
                         $relativePath = mb_substr($uriParts->path, mb_strlen($urlPathArray[$level]));
-                        $class->$methodAction($relativePath); // @phpstan-ignore method.dynamicName
+                        /**
+                         * @phpstan-ignore method.dynamicName
+                         * @phpstan-ignore method.notFound
+                         */
+                        $class->$methodAction($relativePath);
                         return;
                     }
                 }
@@ -127,7 +135,7 @@ class Router
         } catch (HttpStatus $ex) {
             $debugInfo = null;
 
-            if ($this->DevEnvironment) {
+            if ($this->devEnvironment) {
                 $debugInfo = "\n\nTested classes:\n";
                 $debugInfo .= implode("\n", $testedClasses);
             }
@@ -136,7 +144,7 @@ class Router
         } catch (Exception $ex) {
             $debugInfo = null;
 
-            if ($this->DevEnvironment) {
+            if ($this->devEnvironment) {
                 $debugInfo = "\n\n" . $ex->getMessage();
             }
 
@@ -155,9 +163,9 @@ class Router
     {
         $queryString = null;
 
-        $segments = explode('?', $url);
+        $segments = explode('?', $url, 2);
         $path = $segments[0];
-        if (count($segments) == 2) {
+        if (count($segments) === 2) {
             $queryString = $segments[1];
         }
 

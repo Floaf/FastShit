@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 class AutoLoad
 {
     public static function RegisterNamespace(string $namespace, string $dirName): void
@@ -9,7 +11,7 @@ class AutoLoad
             if (mb_strpos($className, $classNameStart) === 0) {
                 $className = mb_substr($className, mb_strlen($classNameStart));
 
-                if ($dirName == null) {
+                if ($dirName === '') {
                     $fileName = str_replace('\\', DIRECTORY_SEPARATOR, $className) . '.php';
                 } else {
                     $fileName = $dirName . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $className) . '.php';

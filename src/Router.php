@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace FastShit;
 
 use FastShit\HttpStatuses\HttpStatus;
@@ -60,7 +62,7 @@ class Router
             ];
             $pathSegment = '/';
             foreach ($requestSegments as $requestSegment) {
-                if ($requestSegment != null) {
+                if ($requestSegment !== '') {
                     $folderSegment .= self::ConvertToStudlyCaps($requestSegment) . '/';
                     $controllerPathArray[] = $folderSegment;
 
@@ -98,7 +100,7 @@ class Router
                 $controllerClass = $this->controllerNamespace . $controller . $this->controllerName;
 
                 // Level 0 means that the path points to a specific method
-                $methodAction = ($level == 0 ? 'IndexAction' : 'RelativeAction');
+                $methodAction = ($level === 0 ? 'IndexAction' : 'RelativeAction');
 
                 if (class_exists($controllerClass)) {
                     if (method_exists($controllerClass, $methodAction)) {
@@ -117,8 +119,8 @@ class Router
                         }
 
                         $path = $urlPathArray[$level] ?? throw new Exception('Path not found');
-                        $class = new $controllerClass($this->request, $urlPathArray[$level]);
-                        $relativePath = mb_substr($uriParts->path, mb_strlen($urlPathArray[$level]));
+                        $class = new $controllerClass($this->request, $path);
+                        $relativePath = mb_substr($uriParts->path, mb_strlen($path));
                         /**
                          * @phpstan-ignore method.dynamicName, method.notFound, method.notFound
                          */
@@ -188,8 +190,7 @@ readonly class SplitOnQueryStringResult
     public string $path;
     public ?string $queryString;
 
-    public function __construct(string $path, ?string $queryString)
-    {
+    public function __construct(string $path, ?string $queryString) {
         $this->path = $path;
         $this->queryString = $queryString;
     }

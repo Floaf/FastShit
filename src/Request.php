@@ -1,22 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace FastShit;
 
 class Request
 {
     /** @var array<string,string>|array<string,string[]> */
-    public array $Parameters;
-    public ?string $RawData;
+    public readonly array $Parameters;
+    public readonly ?string $RawData;
 
     /** @var string[] */
-    public array $Server;
+    public readonly array $Server;
 
     /** @var string[] */
-    public array $Cookie;
-    public ?string $Ip;
-    public ?string $UserAgent;
-    public ?string $ContentType;
-    protected bool $ValidOrigin;
+    public readonly array $Cookie;
+    public readonly ?string $Ip;
+    public readonly ?string $UserAgent;
+    public readonly ?string $ContentType;
+    protected readonly bool $ValidOrigin;
 
     /**
      * @param array<string,string>|array<string,string[]> $request
@@ -78,10 +80,9 @@ class Request
             $origin = parse_url($this->Server['HTTP_REFERER'], PHP_URL_HOST);
         }
 
-
         $host = parse_url('https://' . ($this->Server['HTTP_HOST'] ?? ''), PHP_URL_HOST);
 
-        return $origin !== null && $origin === $host;
+        return is_string($origin) && is_string($host) && $origin !== '' && $host !== '' && $origin === $host;
     }
 
     /**

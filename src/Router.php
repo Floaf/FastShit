@@ -142,7 +142,7 @@ class Router
             }
 
             $ex->OutputResponse($debugInfo);
-        } catch (Exception $ex) {
+        } catch (\Throwable $ex) {
             $debugInfo = null;
 
             if ($this->devEnvironment) {

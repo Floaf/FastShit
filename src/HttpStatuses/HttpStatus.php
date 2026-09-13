@@ -18,5 +18,5 @@ abstract class HttpStatus extends Exception
         $this->Request = $request;
     }
 
-    public abstract function OutputResponse(?string $debugInfo): void;
+    abstract public function OutputResponse(?string $debugInfo): void;
 }

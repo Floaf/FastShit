@@ -8,8 +8,15 @@ use Throwable;
 
 /**
  * Generic, opt-in error capture. Call Register() once during bootstrap with a
- * project-specific ErrorSink; this wires up PHP's error, exception and shutdown
- * handlers and forwards everything to the sink as a normalized ErrorReport.
+ * project-specific ErrorSink; this wires up PHP's error and shutdown handlers and
+ * forwards everything to the sink as a normalized ErrorReport.
+ *
+ * Reporting is additive: PHP's own handling still runs afterwards, so display_errors
+ * and log_errors keep working as configured (errors visible in development, hidden
+ * in production). Uncaught exceptions are deliberately left to PHP, which turns them
+ * into a fatal error with the stack trace in the message; that is picked up by the
+ * shutdown handler, so they are reported exactly once and still displayed in
+ * development.
  */
 class ErrorReporter
 {
@@ -22,24 +29,18 @@ class ErrorReporter
     {
         self::$sink = $sink;
         set_error_handler(self::HandleError(...));
-        set_exception_handler(self::HandleException(...));
         register_shutdown_function(self::HandleShutdown(...));
     }
 
     public static function HandleError(int $type, string $message, string $file, int $line): bool
     {
-        self::Dispatch(new ErrorReport($type, $message, $file, $line));
-        return true; // reported; suppress PHP's default output (display_errors)
-    }
+        // Errors silenced with @ (or excluded by error_reporting) are not errors to report
+        if ((error_reporting() & $type) === 0) {
+            return false;
+        }
 
-    public static function HandleException(Throwable $exception): void
-    {
-        self::Dispatch(new ErrorReport(
-            E_ERROR,
-            $exception::class . ': ' . $exception->getMessage() . "\n" . $exception->getTraceAsString(),
-            $exception->getFile(),
-            $exception->getLine()
-        ));
+        self::Dispatch(new ErrorReport($type, $message, $file, $line));
+        return false; // reported; let PHP's default handling (display_errors, log_errors) run as well
     }
 
     public static function HandleShutdown(): void

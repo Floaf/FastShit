@@ -10,6 +10,10 @@ class HttpStatus500 extends HttpStatus
     public function OutputResponse(?string $debugInfo): void
     {
         http_response_code(500);
+        header('Content-Type: text/plain; charset=UTF-8');
         print "Something went wrong";
+        if ($debugInfo !== null) {
+            print $debugInfo;
+        }
     }
 }

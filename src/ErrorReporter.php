@@ -43,6 +43,20 @@ class ErrorReporter
         return false; // reported; let PHP's default handling (display_errors, log_errors) run as well
     }
 
+    /**
+     * Reports an exception that was caught rather than left to PHP (the Router uses this for the 500 page). Also
+     * written to error_log, so there is a trace even when no sink is registered or the sink cannot connect.
+     */
+    public static function ReportThrowable(Throwable $exception): void
+    {
+        $message = $exception::class . ': ' . $exception->getMessage() . ' in ' . $exception->getFile() . ':'
+            . $exception->getLine() . "
+Stack trace:
+" . $exception->getTraceAsString();
+        error_log('Uncaught ' . $message);
+        self::Dispatch(new ErrorReport(E_ERROR, $message, $exception->getFile(), $exception->getLine()));
+    }
+
     public static function HandleShutdown(): void
     {
         $error = error_get_last();

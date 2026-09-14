@@ -143,10 +143,15 @@ class Router
 
             $ex->OutputResponse($debugInfo);
         } catch (\Throwable $ex) {
+            // The 500 page hides the cause from the visitor, so record it here: error_log always, and the
+            // ErrorReporter sink when one is registered
+            ErrorReporter::ReportThrowable($ex);
+
             $debugInfo = null;
 
             if ($this->devEnvironment) {
-                $debugInfo = "\n\n" . $ex->getMessage();
+                $debugInfo = "\n\n" . $ex::class . ': ' . $ex->getMessage() . ' in ' . $ex->getFile() . ':' . $ex->getLine()
+                    . "\n\n" . $ex->getTraceAsString();
             }
 
             $status = new ($this->GetStatusClassName(500))($this->request);

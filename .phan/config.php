@@ -27,7 +27,7 @@ return [
     ],
 
     // Ange vilka versioner av PHP som din kod ska vara kompatibel med
-    'target_php_version' => '8.4',
+    'target_php_version' => '8.5',
 
     'minimum_severity' => 8, // 0
 

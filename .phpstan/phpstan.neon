@@ -1,6 +1,7 @@
 includes:
     - ../vendor/phpstan/phpstan/conf/bleedingEdge.neon # https://phpstan.org/blog/what-is-bleeding-edge
     - ../vendor/phpstan/phpstan-strict-rules/rules.neon # https://github.com/phpstan/phpstan-strict-rules
+    - ../vendor/phpstan/phpstan-deprecation-rules/rules.neon # https://github.com/phpstan/phpstan-deprecation-rules
 
 parameters:
     # https://phpstan.org/user-guide/output-format
